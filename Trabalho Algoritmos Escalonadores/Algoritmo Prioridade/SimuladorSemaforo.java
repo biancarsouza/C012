@@ -9,9 +9,9 @@ public class SimuladorSemaforo {
         // Menor número = maior prioridade (ex: 1 = ambulância)
         Carro carro1 = new Carro("Ambulância", 1, semaforo1, semaforo2);
         Carro carro4 = new Carro("Polícia", 2, semaforo1, semaforo2);
-        Carro carro2 = new Carro("Caminhão", 3, semaforo1, semaforo2);
+        Carro carro2 = new Carro("Moto", 3, semaforo1, semaforo2);
         Carro carro5 = new Carro("Carro", 4, semaforo1, semaforo2);
-        Carro carro3 = new Carro("Moto", 5, semaforo1, semaforo2);
+        Carro carro3 = new Carro("Caminhão", 5, semaforo1, semaforo2);
 
         carro1.start();
         carro2.start();
