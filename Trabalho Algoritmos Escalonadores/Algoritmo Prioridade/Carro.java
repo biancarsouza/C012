@@ -11,7 +11,10 @@ class Carro extends Thread {
     private Semaforo semaforo1;
     private Semaforo semaforo2;
 
-    private static java.util.List<Carro> carrosFinalizados = new java.util.ArrayList<>();
+    private long tempoInicio;
+    private long tempoFim;
+
+    private static List<Carro> carrosFinalizados = new ArrayList<>();
     private static final Object lock = new Object();
 
     // Fila com ordenação por prioridade
@@ -31,34 +34,32 @@ class Carro extends Thread {
     }
 
     public void run() {
+        tempoInicio = System.currentTimeMillis(); // Marca o início do percurso
+
         try {
-            // Adiciona o carro à fila do primeiro semáforo de forma sincronizada
             synchronized (lock) {
                 filaSemaforo.add(this);
                 System.out.println(nome + " (Prioridade " + prioridade + ") entrou na FILA do PRIMEIRO semáforo.");
             }
 
-            // Aguarda sua vez para atravessar o primeiro semáforo
             while (true) {
                 synchronized (lock) {
                     Carro primeiro = filaSemaforo.peek();
                     if (primeiro == this && semaforo1.atravessar()) {
-                        filaSemaforo.poll(); // Remove o carro da fila após atravessar
+                        filaSemaforo.poll();
                         System.out.println(nome + " está ATRAVESSANDO o PRIMEIRO semáforo.");
-                        Thread.sleep(2000); // Simula o tempo de travessia
+                        Thread.sleep(2000);
                         System.out.println(nome + " PASSOU pelo PRIMEIRO semáforo!");
                         break;
                     }
                 }
-                Thread.sleep(1000); // Espera antes de tentar novamente
+                Thread.sleep(1000);
             }
 
-            Thread.sleep(2000); // Simula tempo de deslocamento até o próximo semáforo
+            Thread.sleep(2000);
 
-            // Adiciona o carro à fila do segundo semáforo de forma sincronizada
             synchronized (lock) {
                 filaSemaforo.add(this);
-                // Reordena a fila por prioridade (menor valor = maior prioridade)
                 List<Carro> ordenada = new ArrayList<>(filaSemaforo);
                 ordenada.sort(Comparator.comparingInt(c -> c.prioridade));
                 filaSemaforo = new LinkedList<>(ordenada);
@@ -66,33 +67,39 @@ class Carro extends Thread {
                 System.out.println(nome + " (Prioridade " + prioridade + ") entrou na FILA do SEGUNDO semáforo.");
             }
 
-            // Aguarda sua vez para atravessar o segundo semáforo
             while (true) {
                 synchronized (lock) {
                     Carro primeiro = filaSemaforo.peek();
                     if (primeiro == this && semaforo2.atravessar()) {
-                        filaSemaforo.poll(); // Remove o carro da fila após atravessar
+                        filaSemaforo.poll();
                         System.out.println(nome + " está ATRAVESSANDO o SEGUNDO semáforo.");
-                        Thread.sleep(2000); // Simula o tempo de travessia
-                        System.out.println(nome + " PASSOU pelo SEGUNDO semáforo e FINALIZOU o percurso!");
+                        Thread.sleep(2000);
+
+                        tempoFim = System.currentTimeMillis();
+                        long duracao = (tempoFim - tempoInicio) / 1000; // segundos
+
+                        System.out.println(nome + " PASSOU pelo SEGUNDO semáforo e FINALIZOU o percurso em " + duracao + " segundos!");
 
                         carrosFinalizados.add(this);
                         qtdCarros++;
 
-                        // Se todos os carros finalizarem, exibe estatísticas
                         if (qtdCarros == 5) {
                             System.out.println("\n=== TODOS OS CARROS FINALIZARAM ===");
 
                             System.out.println("\nOrdem de término:");
                             for (int i = 0; i < carrosFinalizados.size(); i++) {
                                 Carro c = carrosFinalizados.get(i);
-                                System.out.println((i + 1) + "º - " + c.nome + " (Prioridade " + c.prioridade + ")");
+                                long t = (c.tempoFim - c.tempoInicio) / 1000;
+                                System.out.println((i + 1) + "º - " + c.nome + " (Prioridade " + c.prioridade + ") - Tempo: " + t + "s");
                             }
 
                             System.out.println("\nOrdem de prioridade (maior para menor):");
                             carrosFinalizados.stream()
                                     .sorted(Comparator.comparingInt(c -> c.prioridade))
-                                    .forEach(c -> System.out.println(c.nome + " (Prioridade " + c.prioridade + ")"));
+                                    .forEach(c -> {
+                                        long t = (c.tempoFim - c.tempoInicio) / 1000;
+                                        System.out.println(c.nome + " (Prioridade " + c.prioridade + ") - Tempo: " + t + "s");
+                                    });
 
                             System.exit(0);
                         }
@@ -100,12 +107,11 @@ class Carro extends Thread {
                         break;
                     }
                 }
-                Thread.sleep(1000); // Espera antes de tentar novamente
+                Thread.sleep(1000);
             }
 
         } catch (InterruptedException e) {
             System.out.println("O uso do " + nome + " foi interrompido.");
         }
     }
-
 }
