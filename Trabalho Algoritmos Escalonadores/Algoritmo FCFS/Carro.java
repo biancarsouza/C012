@@ -20,6 +20,8 @@ class Carro extends Thread {
     }
 
     public void run() {
+        long tempoInicio = System.currentTimeMillis(); // Início do percurso
+
         try {
             synchronized (lock) {
                 filaSemaforo.add(this);
@@ -56,10 +58,13 @@ class Carro extends Thread {
 
                         Thread.sleep(2000);
 
-                        System.out.println(nome + " PASSOU pelo SEGUNDO semáforo e FINALIZOU o percurso!");
+                        long tempoFim = System.currentTimeMillis();
+                        long duracao = (tempoFim - tempoInicio) / 1000; // tempo em segundos
+
+                        System.out.println(nome + " PASSOU pelo SEGUNDO semáforo e FINALIZOU o percurso em " + duracao + " segundos!");
 
                         synchronized (lock) {
-                            ordemFinalizacao.add(nome + " (Prioridade " + prioridade + ")");
+                            ordemFinalizacao.add(nome + " (Prioridade " + prioridade + ") - Tempo: " + duracao + "s");
                             qtdCarros++;
 
                             if (qtdCarros == 5) {
